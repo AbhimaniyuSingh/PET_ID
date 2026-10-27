@@ -1,0 +1,75 @@
+<datalist id="vaccine-list">
+  <option value="Anti-rabies">
+  <option value="DHPPi (distemper, hepatitis, parvo, parainfluenza)">
+  <option value="Parvovirus">
+  <option value="Leptospirosis">
+  <option value="Kennel cough">
+  <option value="Tricat / FVRCP">
+  <option value="Feline leukemia">
+  <option value="Deworming">
+</datalist>
+
+<label for="vacc_count">How many vaccinations has your pet had?</label>
+<select id="vacc_count" name="vacc_count">
+  {% for n in range(0, 11) %}
+  <option value="{{ n }}" {{ 'selected' if n == vacc_rows|length }}>{{ n }}</option>
+  {% endfor %}
+</select>
+<div id="vacc-rows"></div>
+
+<script id="vacc-initial" type="application/json">{{ vacc_rows|tojson }}</script>
+<script>
+(function () {
+  var sel = document.getElementById('vacc_count');
+  var box = document.getElementById('vacc-rows');
+  var state = JSON.parse(document.getElementById('vacc-initial').textContent);
+  var rendered = false;
+
+  function field(labelText, type, name, cls, value, required) {
+    var wrap = document.createElement('div');
+    var label = document.createElement('label');
+    label.textContent = labelText;
+    var input = document.createElement('input');
+    input.type = type; input.name = name; input.className = cls;
+    input.value = value || '';
+    if (required) input.required = true;
+    if (cls === 'vn') input.setAttribute('list', 'vaccine-list');
+    wrap.appendChild(label); wrap.appendChild(input);
+    return wrap;
+  }
+
+  function readCurrent() {
+    var out = [];
+    box.querySelectorAll('.vacc-row').forEach(function (r) {
+      out.push({ name: r.querySelector('.vn').value,
+                 given: r.querySelector('.vd').value,
+                 next: r.querySelector('.vx').value });
+    });
+    return out;
+  }
+
+  function render() {
+    if (rendered) state = readCurrent();   // keep what the user already typed
+    var n = parseInt(sel.value, 10) || 0;
+    box.innerHTML = '';
+    for (var i = 1; i <= n; i++) {
+      var d = state[i - 1] || { name: '', given: '', next: '' };
+      var row = document.createElement('div');
+      row.className = 'vacc-row';
+      var title = document.createElement('strong');
+      title.textContent = 'Vaccination ' + i;
+      var grid = document.createElement('div');
+      grid.className = 'row3';
+      grid.appendChild(field('Vaccine name *', 'text', 'vacc_name_' + i, 'vn', d.name, true));
+      grid.appendChild(field('Date given', 'date', 'vacc_date_' + i, 'vd', d.given, false));
+      grid.appendChild(field('Next due (optional)', 'date', 'vacc_next_' + i, 'vx', d.next, false));
+      row.appendChild(title); row.appendChild(grid);
+      box.appendChild(row);
+    }
+    rendered = true;
+  }
+
+  sel.addEventListener('change', render);
+  render();
+})();
+</script>

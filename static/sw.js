@@ -1,0 +1,13 @@
+// Minimal service worker: makes PetID installable. Pages are always fetched fresh from the
+// network (pet data must never be stale); only static files fall back to the cache offline.
+const CACHE = 'petid-v3';
+self.addEventListener('install', (e) => {
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/static/style.css'])).then(() => self.skipWaiting()));
+});
+self.addEventListener('activate', (e) => {
+  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+});
+self.addEventListener('fetch', (e) => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+});

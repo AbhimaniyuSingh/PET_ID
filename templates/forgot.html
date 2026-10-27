@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Forgot password - PetID{% endblock %}
+{% block content %}
+<h1>Forgot your password?</h1>
+<form method="post" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <p class="muted">Enter your account email and we'll send you a link to choose a new password.</p>
+  <label>Email</label><input name="email" type="email" required>
+  <button class="btn" type="submit">Send reset link</button>
+</form>
+{% endblock %}

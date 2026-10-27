@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}{{ pet.name }} - PetID{% endblock %}
+{% block content %}
+<h1>{{ pet.name }} {% if pet.lost %}<span class="badge overdue">LOST</span>{% endif %}</h1>
+<p><a href="{{ url_for('dashboard') }}">← All pets</a></p>
+
+<div class="card">
+  <h2>Downloads</h2>
+  <a class="btn" href="{{ url_for('download_tag', pet_id=pet.id) }}">⬇ QR tag (PDF)</a>
+  <a class="btn secondary" href="{{ url_for('download_poster', pet_id=pet.id) }}">Lost poster (QR only)</a>
+  <a class="btn secondary" href="{{ url_for('download_poster', pet_id=pet.id, phone=1) }}">Lost poster (with my phone)</a>
+  <a class="btn secondary" href="{{ url_for('download_health_card', pet_id=pet.id) }}">Health card (PDF)</a>
+  <p class="muted" style="margin-top:14px">The QR opens:</p>
+  <div class="linkbox">{{ public_link }}</div>
+  <p class="muted">Vet code: <strong>{{ pet.public_id }}</strong> (the part after /p/). <a href="{{ url_for('preview', pet_id=pet.id) }}" target="_blank">View public page</a> (doesn't count as a scan).</p>
+  <p><a class="btn secondary" href="{{ url_for('pet_edit', pet_id=pet.id) }}">✏️ Edit details &amp; vaccinations</a></p>
+</div>
+
+<div class="card">
+  <h2>Lost mode</h2>
+  <p>Status: <strong>{{ 'LOST' if pet.lost else 'Safe' }}</strong></p>
+  <form method="post" action="{{ url_for('toggle_lost', pet_id=pet.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn {{ '' if pet.lost else 'danger' }}" type="submit">{{ 'Mark as found' if pet.lost else 'Mark as LOST' }}</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Vaccinations</h2>
+  {% if vaccs %}
+  <div class="table-wrap"><table>
+    <tr><th>Vaccine</th><th>Given on</th><th>Next due</th><th></th></tr>
+    {% for v in vaccs %}
+    <tr><td>{{ v.name }}{% if v.verified_by %}<div class="verified">✔ {{ v.verified_by }}</div>{% endif %}</td>
+      <td>{{ v.given }}</td><td>{{ v.next }}</td>
+      <td>{% if v.status %}<span class="badge {{ v.status[0] }}">{{ v.status[1] }}</span>{% endif %}</td></tr>
+    {% endfor %}
+  </table></div>
+  {% else %}<p class="muted">None recorded yet. Use "Edit details" to add them.</p>{% endif %}
+  <p class="muted">You'll get an email and SMS a week before each due date.</p>
+</div>
+
+<div class="card">
+  <h2>Messages from finders ({{ reports|length }})</h2>
+  {% for r in reports %}
+    <div class="report">
+      <strong>{{ r.finder_name or 'Someone' }}</strong>
+      {% if r.finder_phone %} · <a href="tel:{{ r.finder_phone }}">{{ r.finder_phone }}</a>{% endif %}
+      <span class="muted"> · {{ r.created_at }}</span>
+      {% if r.location %}<div>📍 {{ r.location }}</div>{% endif %}
+      {% if r.lat is not none %}<div><a href="https://www.google.com/maps?q={{ r.lat }},{{ r.lng }}" target="_blank" rel="noopener">📌 Exact location on Google Maps</a></div>{% endif %}
+      {% if r.message %}<div>{{ r.message }}</div>{% endif %}
+    </div>
+  {% else %}<p class="muted">No messages yet.</p>{% endfor %}
+</div>
+
+<div class="card">
+  <h2>Scan history ({{ scan_count }} total)</h2>
+  {% for s in scans %}
+    <div class="report">{{ s.scanned_at.replace('T', ' ') }}{% if not s.alerted %} <span class="muted">(alert skipped - another scan just happened)</span>{% endif %}</div>
+  {% else %}<p class="muted">Nobody has scanned the tag yet.</p>{% endfor %}
+</div>
+
+<div class="card">
+  <h2>Transfer to a new owner</h2>
+  {% if pending_transfer %}<p class="notice">A transfer request to <strong>{{ pending_transfer.to_email }}</strong> is waiting to be accepted.</p>{% endif %}
+  <form method="post" action="{{ url_for('transfer_start', pet_id=pet.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>New owner's email</label><input name="to_email" type="email" required>
+    <p class="muted">They get a link to accept. The printed tag keeps working and alerts go to them after they accept.</p>
+    <button class="btn secondary" type="submit">Send transfer request</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Security &amp; danger zone</h2>
+  <form method="post" action="{{ url_for('rotate_qr', pet_id=pet.id) }}" onsubmit="return confirm('The OLD printed tag will stop working. Continue?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <p class="muted">Tag lost or shared somewhere it shouldn't be? Create a new QR code and the old one stops working.</p>
+    <button class="btn secondary" type="submit">Regenerate QR code</button>
+  </form>
+  <form method="post" action="{{ url_for('pet_delete', pet_id=pet.id) }}" onsubmit="return confirm('Delete {{ pet.name|e }} permanently? This cannot be undone.');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn danger" type="submit">Delete this pet</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Accept transfer - PetID{% endblock %}
+{% block content %}
+<h1>Accept {{ tr.pet_name }}?</h1>
+<form method="post" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <p><strong>{{ tr.from_name }}</strong> wants to transfer <strong>{{ tr.pet_name }}</strong> to your account.</p>
+  <p class="muted">After you accept, scan alerts and reminders go to you, and the existing QR tag keeps working.</p>
+  <button class="btn" type="submit">Accept transfer</button>
+  <a class="btn secondary" href="{{ url_for('dashboard') }}">Not now</a>
+</form>
+{% endblock %}

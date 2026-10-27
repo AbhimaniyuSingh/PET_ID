@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Community animals - PetID{% endblock %}
+{% block content %}
+<h1>🐕 Community animals</h1>
+<p class="muted">Street and community animals registered by the people who look after them. Shown by neighbourhood only.</p>
+<form method="get" class="card">
+  <label>City</label>
+  <select name="city" onchange="this.form.submit()">
+    <option value="">All cities</option>
+    {% for c in cities %}<option {{ 'selected' if c == city }}>{{ c }}</option>{% endfor %}
+  </select>
+  <noscript><button class="btn" type="submit">Filter</button></noscript>
+</form>
+{% for (c, area), pets in groups.items() %}
+<div class="card">
+  <h2>📍 {{ area }}, {{ c }}</h2>
+  <p class="muted"><a href="https://www.google.com/maps/search/?api=1&query={{ (area ~ ', ' ~ c)|urlencode }}" target="_blank" rel="noopener">View area on Google Maps ↗</a></p>
+  <div class="grid">
+  {% for p in pets %}
+    <a class="pet-tile" href="{{ url_for('pet_page', public_id=p.public_id) }}">
+      {% if p.photo %}<img src="{{ url_for('uploaded_file', filename=p.photo) }}" alt="">{% else %}<div class="noimg">🐾</div>{% endif %}
+      <div class="pet-tile-body"><strong>{{ p.name }}</strong>
+        <div class="muted">{{ p.species }}{% if p.sterilized == 'Yes' %} · sterilized{% endif %}</div>
+        {% if p.lost %}<span class="badge overdue">MISSING</span>{% endif %}</div>
+    </a>
+  {% endfor %}
+  </div>
+</div>
+{% else %}
+<p class="muted">No community animals registered{% if city %} in {{ city }}{% endif %} yet.</p>
+{% endfor %}
+{% endblock %}

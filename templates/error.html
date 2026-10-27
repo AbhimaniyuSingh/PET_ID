@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Error {{ code }} - PetID{% endblock %}
+{% block content %}
+<div class="card" style="text-align:center">
+  <h1>{{ code }}</h1>
+  <p>{{ message }}</p>
+  <a class="btn" href="{{ url_for('index') }}">Go to home page</a>
+</div>
+{% endblock %}

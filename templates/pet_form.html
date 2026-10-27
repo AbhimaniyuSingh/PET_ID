@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if mode == 'edit' else 'Add' }} pet - PetID{% endblock %}
+{% block content %}
+<h1>{{ 'Edit ' ~ pet.name if mode == 'edit' else 'Add a pet' }}</h1>
+<form method="post" enctype="multipart/form-data" class="card"
+      action="{{ url_for('pet_edit', pet_id=pet.id) if mode == 'edit' else url_for('pet_new') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <label>This animal is</label>
+  <label class="check"><input type="radio" name="kind" value="owned" {{ 'checked' if form.get('kind','owned') != 'community' }}> My own pet</label>
+  <label class="check"><input type="radio" name="kind" value="community" {{ 'checked' if form.get('kind') == 'community' }}> A community / street animal I look after</label>
+
+  <h2 style="margin-top:20px">About the animal</h2>
+  <div class="row">
+    <div><label>Name *</label><input name="name" value="{{ form.get('name','') }}" required></div>
+    <div><label>Species *</label>
+      <select name="species" required>
+        {% for s in species_list %}<option {{ 'selected' if form.get('species') == s }}>{{ s }}</option>{% endfor %}
+      </select></div>
+  </div>
+  <div class="row">
+    <div><label>Breed</label><input name="breed" value="{{ form.get('breed','') }}"></div>
+    <div><label>Gender</label>
+      <select name="gender">
+        {% for g in ['Male','Female','Unknown'] %}<option {{ 'selected' if form.get('gender') == g }}>{{ g }}</option>{% endfor %}
+      </select></div>
+  </div>
+  <div class="row">
+    <div><label>Color / markings</label><input name="color" value="{{ form.get('color','') }}"></div>
+    <div><label>Photo {% if mode == 'edit' and pet.photo %}<span class="muted">(upload a new one to replace)</span>{% endif %}</label>
+      <input type="file" name="photo" accept="image/*"></div>
+  </div>
+  <div class="row">
+    <div><label>Birth month</label>
+      <select name="birth_month"><option value="">-</option>
+        {% for num, nm in months %}<option value="{{ num }}" {{ 'selected' if form.get('birth_month') == num|string }}>{{ nm }}</option>{% endfor %}
+      </select></div>
+    <div><label>Birth year</label><input type="number" name="birth_year" min="1990" max="2100" value="{{ form.get('birth_year','') }}"></div>
+  </div>
+  <label>Temperament</label>
+  <input name="temperament" placeholder="Friendly, shy, may bite, responds to its name..." value="{{ form.get('temperament','') }}">
+  <div class="row">
+    <div><label>Microchip number</label><input name="microchip" value="{{ form.get('microchip','') }}"></div>
+    <div><label>Sterilized / neutered?</label>
+      <select name="sterilized">
+        {% for s in ['Unknown','Yes','No'] %}<option {{ 'selected' if form.get('sterilized') == s }}>{{ s }}</option>{% endfor %}
+      </select></div>
+  </div>
+  <label>Sterilization date (optional)</label>
+  <input type="date" name="sterilized_date" value="{{ form.get('sterilized_date','') }}">
+
+  <h2 style="margin-top:22px">Vaccinations</h2>
+  {% include "_vacc_form.html" %}
+
+  <h2 style="margin-top:22px">Health &amp; care</h2>
+  <label>Allergies / medical notes</label>
+  <textarea name="medical_notes" placeholder="Allergies, medication, conditions...">{{ form.get('medical_notes','') }}</textarea>
+  <label>Food notes</label>
+  <textarea name="food_notes" placeholder="What it eats, foods to avoid...">{{ form.get('food_notes','') }}</textarea>
+  <div class="row">
+    <div><label>Regular vet / clinic</label><input name="vet_name" value="{{ form.get('vet_name','') }}"></div>
+    <div><label>Vet phone</label><input name="vet_phone" type="tel" value="{{ form.get('vet_phone','') }}"></div>
+  </div>
+
+  <h2 style="margin-top:22px">Home area (shown on a map)</h2>
+  <div class="row">
+    <div><label>Area / locality *</label><input name="area" placeholder="e.g. Gandhi Nagar" value="{{ form.get('area','') }}" required></div>
+    <div><label>City / district *</label><input name="city" placeholder="e.g. Jammu" value="{{ form.get('city','') }}" required></div>
+  </div>
+  <p class="muted">Enter only the locality, not the house or street. For a community animal, enter where it is usually seen.</p>
+  <label>Who feeds / looks after it? <span class="muted">(community animals)</span></label>
+  <input name="caretaker_note" value="{{ form.get('caretaker_note','') }}" placeholder="e.g. Fed daily by the tea stall near the temple">
+
+  <h2 style="margin-top:22px">Backup contact (optional)</h2>
+  <p class="muted">Also gets the SMS alerts, useful if you can't answer. Alerts to you always go to your account email and phone.</p>
+  <div class="row">
+    <div><label>Name</label><input name="backup_name" value="{{ form.get('backup_name','') }}"></div>
+    <div><label>Phone</label><input name="backup_phone" type="tel" value="{{ form.get('backup_phone','') }}"></div>
+  </div>
+
+  <h2 style="margin-top:22px">What can finders see?</h2>
+  <label class="check"><input type="checkbox" name="show_vacc" {{ 'checked' if form.get('show_vacc') }}> Vaccination record</label>
+  <label class="check"><input type="checkbox" name="show_notes" {{ 'checked' if form.get('show_notes') }}> Medical notes, food notes and vet details</label>
+  <label class="check"><input type="checkbox" name="show_map" {{ 'checked' if form.get('show_map') }}> Map of the home area</label>
+  <label class="check"><input type="checkbox" name="show_microchip" {{ 'checked' if form.get('show_microchip') }}> Microchip number</label>
+  <label class="check"><input type="checkbox" name="show_phone" {{ 'checked' if form.get('show_phone') }}> My phone number with a call button (not recommended - anyone who scans can see it)</label>
+  <div class="notice">📩 You'll get an <strong>email and an SMS every time the QR code is scanned</strong>, and when a finder leaves a message.</div>
+
+  <button class="btn" type="submit">{{ 'Save changes' if mode == 'edit' else 'Register & get QR tag' }}</button>
+  <a class="btn secondary" href="{{ url_for('manage', pet_id=pet.id) if mode == 'edit' else url_for('dashboard') }}">Cancel</a>
+</form>
+{% endblock %}

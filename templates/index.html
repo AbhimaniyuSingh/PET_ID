@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="hero">
+  <h1>{{ t('hero_title') }}</h1>
+  <p class="muted">{{ t('hero_sub') }}</p>
+  <a class="btn" href="{{ url_for('dashboard' if current_user() else 'signup') }}">{{ t('hero_btn') }}</a>
+</div>
+<div class="card">
+  <h2>{{ t('how_title') }}</h2>
+  <ol><li>{{ t('how1') }}</li><li>{{ t('how2') }}</li><li>{{ t('how3') }}</li><li>{{ t('how4') }}</li></ol>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Vet lookup - PetID{% endblock %}
+{% block content %}
+<h1>Verify a pet's vaccinations</h1>
+<form method="post" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <p class="muted">Enter the pet code from the owner's page, or paste the tag link (the code is the part after /p/).</p>
+  <label>Pet code or link</label><input name="code" required>
+  <button class="btn" type="submit">Find pet</button>
+</form>
+{% endblock %}

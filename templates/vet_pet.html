@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ pet.name }} - Vet view{% endblock %}
+{% block content %}
+<h1>{{ pet.name }}</h1>
+<div class="card">
+  {% if pet.photo %}<img class="pet-photo" src="{{ url_for('uploaded_file', filename=pet.photo) }}" alt="">{% endif %}
+  <dl>
+    <dt>Species</dt><dd>{{ pet.species }}{% if pet.breed %} ({{ pet.breed }}){% endif %}</dd>
+    <dt>Age</dt><dd>{{ age }}</dd>
+    {% if pet.color %}<dt>Color</dt><dd>{{ pet.color }}</dd>{% endif %}
+    {% if pet.microchip %}<dt>Microchip</dt><dd>{{ pet.microchip }}</dd>{% endif %}
+  </dl>
+</div>
+<div class="card">
+  <h2>Vaccination records entered by the owner</h2>
+  {% for v in vaccs %}
+  <div class="report">
+    <strong>{{ v.name }}</strong> · given {{ v.given }} · next due {{ v.next }}
+    {% if v.verified_by %}
+      <div class="verified">✔ Verified by {{ v.verified_by }} on {{ v.verified_at }}</div>
+    {% else %}
+      <form method="post" action="{{ url_for('vet_verify', vacc_id=v.id) }}" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn" type="submit" style="margin-top:6px">Verify this vaccination</button>
+      </form>
+    {% endif %}
+  </div>
+  {% else %}<p class="muted">The owner hasn't recorded any vaccinations.</p>{% endfor %}
+  <p class="muted">Only verify records you have checked against your own clinic records.</p>
+  <a class="btn secondary" href="{{ url_for('vet_home') }}">Look up another pet</a>
+</div>
+{% endblock %}

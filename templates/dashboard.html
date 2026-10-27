@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}My pets - PetID{% endblock %}
+{% block content %}
+<h1>My pets</h1>
+{% for tr in incoming %}
+<div class="notice"><strong>{{ tr.from_name }}</strong> wants to transfer <strong>{{ tr.pet_name }}</strong> to you.
+  <a href="{{ url_for('transfer_accept', token=tr.token) }}">Review the request</a></div>
+{% endfor %}
+<p>
+  <a class="btn" href="{{ url_for('pet_new') }}">+ Add my pet</a>
+  <a class="btn secondary" href="{{ url_for('pet_new', kind='community') }}">+ Add a community / street animal</a>
+</p>
+<div class="grid">
+{% for p in pets %}
+  <a class="pet-tile" href="{{ url_for('manage', pet_id=p.id) }}">
+    {% if p.photo %}<img src="{{ url_for('uploaded_file', filename=p.photo) }}" alt="">{% else %}<div class="noimg">🐾</div>{% endif %}
+    <div class="pet-tile-body">
+      <strong>{{ p.name }}</strong>
+      <div class="muted">{{ p.species }}{% if p.kind == 'community' %} · community{% endif %}</div>
+      {% if p.lost %}<span class="badge overdue">LOST</span>{% endif %}
+    </div>
+  </a>
+{% else %}
+  <p class="muted">No pets yet. Add your first one!</p>
+{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Vet account - PetID{% endblock %}
+{% block content %}
+<div class="card"><h1>Waiting for approval</h1>
+<p>Thanks for registering, Dr. {{ current_user().name }}. An admin needs to approve <strong>{{ current_user().clinic_name }}</strong> before you can verify vaccination records. Check back soon.</p></div>
+{% endblock %}

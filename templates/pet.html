@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}{{ pet.name }} - PetID{% endblock %}
+{% block content %}
+{% if pet.lost %}<div class="lost-banner">{{ t('lost_banner') }}</div>{% endif %}
+
+<div class="card">
+  {% if pet.photo %}<img class="pet-photo" src="{{ url_for('uploaded_file', filename=pet.photo) }}" alt="{{ pet.name }}">{% endif %}
+  <h1>{{ pet.name }} {% if pet.kind == 'community' %}<span class="badge ok">{{ t('community_badge') }}</span>{% endif %}</h1>
+  <dl>
+    <dt>{{ t('species') }}</dt><dd>{{ pet.species }}{% if pet.breed %} ({{ pet.breed }}){% endif %}</dd>
+    {% if pet.gender %}<dt>{{ t('gender') }}</dt><dd>{{ pet.gender }}</dd>{% endif %}
+    {% if pet.color %}<dt>{{ t('color') }}</dt><dd>{{ pet.color }}</dd>{% endif %}
+    <dt>{{ t('age') }}</dt><dd>{{ age }}</dd>
+    {% if birth_month_name %}<dt>{{ t('birth_month') }}</dt><dd>{{ birth_month_name }} {{ pet.birth_year or '' }}</dd>{% endif %}
+    {% if pet.temperament %}<dt>{{ t('temperament') }}</dt><dd>{{ pet.temperament }}</dd>{% endif %}
+    {% if pet.sterilized and pet.sterilized != 'Unknown' %}<dt>{{ t('sterilized') }}</dt><dd>{{ pet.sterilized }}</dd>{% endif %}
+    {% if pet.show_microchip and pet.microchip %}<dt>{{ t('microchip') }}</dt><dd>{{ pet.microchip }}</dd>{% endif %}
+    <dt>{{ t('home_area') }}</dt><dd>{{ pet.area }}, {{ pet.city }}</dd>
+    {% if pet.kind == 'community' and pet.caretaker_note %}<dt>{{ t('cared_by') }}</dt><dd>{{ pet.caretaker_note }}</dd>{% endif %}
+  </dl>
+</div>
+
+{% if pet.show_map %}
+<div class="card">
+  <h2>{{ t('where_i_live') }}</h2>
+  <iframe class="map-frame" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"
+    title="Map of {{ map_query }}"
+    src="https://maps.google.com/maps?q={{ map_query|urlencode }}&z=14&output=embed"></iframe>
+  <p class="muted"><a href="https://www.google.com/maps/search/?api=1&query={{ map_query|urlencode }}" target="_blank" rel="noopener">{{ t('open_in_maps') }}</a></p>
+</div>
+{% endif %}
+
+{% if pet.show_vacc %}
+<div class="card">
+  <h2>{{ t('vaccinations') }}</h2>
+  {% if next_due %}<p>{{ t('next_due') }}: <strong>{{ next_due.name }}</strong> <span class="badge {{ next_due.status[0] }}">{{ next_due.status[1] }}</span></p>{% endif %}
+  {% if vaccs %}
+  <div class="table-wrap"><table>
+    <tr><th>{{ t('vaccine') }}</th><th>{{ t('given_on') }}</th><th>{{ t('next_due_col') }}</th></tr>
+    {% for v in vaccs %}
+    <tr>
+      <td>{{ v.name }}{% if v.verified_by %}<div class="verified">{{ t('verified') }} {{ v.verified_by }}</div>{% endif %}</td>
+      <td>{{ v.given }}</td>
+      <td>{{ v.next }}{% if v.status and v.status[0] == 'overdue' %} <span class="badge overdue">{{ t('overdue') }}</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table></div>
+  {% else %}<p class="muted">{{ t('no_vaccinations') }}</p>{% endif %}
+</div>
+{% endif %}
+
+{% if pet.show_notes and (pet.medical_notes or pet.food_notes or pet.vet_name) %}
+<div class="card">
+  <dl>
+    {% if pet.medical_notes %}<dt>{{ t('medical_notes') }}</dt><dd>{{ pet.medical_notes }}</dd>{% endif %}
+    {% if pet.food_notes %}<dt>{{ t('food_notes') }}</dt><dd>{{ pet.food_notes }}</dd>{% endif %}
+    {% if pet.vet_name %}<dt>{{ t('vet') }}</dt><dd>{{ pet.vet_name }}{% if pet.vet_phone %} · <a href="tel:{{ pet.vet_phone }}">{{ pet.vet_phone }}</a>{% endif %}</dd>{% endif %}
+  </dl>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>{{ t('found_me') }}</h2>
+  {% if pet.show_phone %}
+    <p><a class="btn" href="tel:{{ owner.phone }}">{{ t('call') }} {{ owner.name }}</a></p>
+    <p class="muted">{{ t('or_message') }}</p>
+  {% else %}
+    <p class="muted">{{ t('owner_private') }}</p>
+  {% endif %}
+  <form method="post" action="{{ url_for('report', public_id=pet.public_id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="hp"><input name="website" tabindex="-1" autocomplete="off"></div>
+    <input type="hidden" name="lat" id="lat"><input type="hidden" name="lng" id="lng">
+    <div class="row">
+      <div><label>{{ t('your_name') }}</label><input name="finder_name" maxlength="100"></div>
+      <div><label>{{ t('your_phone') }}</label><input name="finder_phone" type="tel" maxlength="30"></div>
+    </div>
+    <label>{{ t('where_found') }}</label><input name="location" maxlength="200" placeholder="{{ t('street_landmark') }}">
+    <p><button type="button" class="btn secondary" id="geo-btn">{{ t('share_location') }}</button> <span class="muted" id="geo-status"></span></p>
+    <label>{{ t('message') }}</label><textarea name="message" maxlength="1000" placeholder="{{ t('message_ph') }}"></textarea>
+    <label>{{ t('captcha_label') }} {{ captcha_question() }} ?</label>
+    <input name="captcha" inputmode="numeric" required autocomplete="off" style="max-width:120px">
+    <button class="btn" type="submit">{{ t('send_to_owner') }}</button>
+  </form>
+</div>
+<script>
+  (function () {
+    var btn = document.getElementById('geo-btn'), st = document.getElementById('geo-status');
+    btn.addEventListener('click', function () {
+      if (!navigator.geolocation) { st.textContent = {{ t('location_denied')|tojson }}; return; }
+      st.textContent = '…';
+      navigator.geolocation.getCurrentPosition(function (p) {
+        document.getElementById('lat').value = p.coords.latitude.toFixed(6);
+        document.getElementById('lng').value = p.coords.longitude.toFixed(6);
+        st.textContent = {{ t('location_added')|tojson }};
+      }, function () { st.textContent = {{ t('location_denied')|tojson }}; }, { enableHighAccuracy: true, timeout: 10000 });
+    });
+  })();
+</script>
+{% endblock %}

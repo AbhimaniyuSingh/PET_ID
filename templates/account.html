@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}My account - PetID{% endblock %}
+{% block content %}
+<h1>My account</h1>
+<form method="post" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="action" value="profile">
+  <h2>Contact details</h2>
+  <p class="muted">Scan alerts and reminders go to <strong>{{ current_user().email }}</strong> and the phone number below.</p>
+  <div class="row">
+    <div><label>Name</label><input name="name" value="{{ current_user().name }}" required></div>
+    <div><label>Phone</label><input name="phone" type="tel" value="{{ current_user().phone }}" required></div>
+  </div>
+  <button class="btn" type="submit">Save</button>
+</form>
+<form method="post" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="action" value="password">
+  <h2>Change password</h2>
+  <label>Current password</label><input name="current" type="password" required autocomplete="current-password">
+  <label>New password</label><input name="new" type="password" minlength="8" required autocomplete="new-password">
+  <button class="btn" type="submit">Change password</button>
+</form>
+{% endblock %}

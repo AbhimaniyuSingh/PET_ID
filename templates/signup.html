@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Sign up - PetID{% endblock %}
+{% block content %}
+<h1>Create your account</h1>
+<form method="post" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="hp"><input name="website" tabindex="-1" autocomplete="off"></div>
+  <label>I am a</label>
+  <label class="check"><input type="radio" name="role" value="owner" {{ 'checked' if form.get('role','owner') != 'vet' }}> Pet owner / caretaker</label>
+  <label class="check"><input type="radio" name="role" value="vet" {{ 'checked' if form.get('role') == 'vet' }}> Veterinarian (can verify vaccination records; needs admin approval)</label>
+  <div class="row">
+    <div><label>Your name *</label><input name="name" value="{{ form.get('name','') }}" required></div>
+    <div><label>Phone number * <span class="muted">(alerts are sent here)</span></label><input name="phone" type="tel" value="{{ form.get('phone','') }}" required></div>
+  </div>
+  <label>Email * <span class="muted">(alerts and password reset are sent here)</span></label>
+  <input name="email" type="email" value="{{ form.get('email','') }}" required>
+  <label>Password * <span class="muted">(at least 8 characters)</span></label>
+  <input name="password" type="password" minlength="8" required autocomplete="new-password">
+  <div id="vetfields">
+    <div class="row">
+      <div><label>Clinic name</label><input name="clinic_name" value="{{ form.get('clinic_name','') }}"></div>
+      <div><label>Vet registration number</label><input name="vet_reg_no" value="{{ form.get('vet_reg_no','') }}"></div>
+    </div>
+  </div>
+  <label>Quick check: what is {{ captcha_question() }} ?</label>
+  <input name="captcha" inputmode="numeric" required autocomplete="off">
+  <button class="btn" type="submit">Create account</button>
+  <p class="muted">Already registered? <a href="{{ url_for('login') }}">Log in</a></p>
+</form>
+<script>
+  (function () {
+    var box = document.getElementById('vetfields');
+    var radios = document.querySelectorAll('input[name=role]');
+    function sync() { var vet = document.querySelector('input[name=role]:checked').value === 'vet'; box.style.display = vet ? '' : 'none'; }
+    radios.forEach(function (r) { r.addEventListener('change', sync); });
+    sync();
+  })();
+</script>
+{% endblock %}

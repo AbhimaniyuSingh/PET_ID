@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Admin - PetID{% endblock %}
+{% block content %}
+<h1>Admin dashboard</h1>
+<div class="stats">
+  {% for label, value in stats.items() %}<div class="stat"><div class="stat-n">{{ value }}</div><div class="muted">{{ label }}</div></div>{% endfor %}
+</div>
+
+<div class="card">
+  <h2>Vet accounts</h2>
+  {% for v in vets %}
+  <div class="report">
+    <strong>{{ v.name }}</strong> · {{ v.clinic_name }} · reg. {{ v.vet_reg_no }} · {{ v.email }}
+    {% if v.vet_approved %}<span class="badge ok">approved</span>{% else %}<span class="badge soon">pending</span>{% endif %}
+    <form method="post" action="{{ url_for('admin_vet', user_id=v.id, action='revoke' if v.vet_approved else 'approve') }}" class="inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn secondary" type="submit" style="margin:0 0 0 8px">{{ 'Revoke' if v.vet_approved else 'Approve' }}</button>
+    </form>
+  </div>
+  {% else %}<p class="muted">No vets have registered.</p>{% endfor %}
+  <p class="muted">Check the registration number with the state veterinary council before approving.</p>
+</div>
+
+<div class="card"><h2>Currently lost</h2>
+  {% for p in lost %}<div class="report">{{ p.name }} · {{ p.city }} · {{ p.email }}</div>{% else %}<p class="muted">None.</p>{% endfor %}</div>
+
+<div class="card"><h2>Vaccinations due in the next 14 days</h2>
+  {% for d in due %}<div class="report">{{ d.name }} · {{ d.vaccine_name }} · {{ d.next_due }} · {{ d.email }}</div>{% else %}<p class="muted">None.</p>{% endfor %}</div>
+
+<div class="card"><h2>Newest sign-ups</h2>
+  {% for r in recent %}<div class="report">{{ r.name }} · {{ r.email }} · {{ r.role }} · <span class="muted">{{ r.created_at }}</span></div>{% endfor %}</div>
+{% endblock %}

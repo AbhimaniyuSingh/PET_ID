@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="{{ current_lang() }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e07a2f">
+  <link rel="manifest" href="{{ url_for('manifest') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+  <title>{% block title %}PetID{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  {% set u = current_user() %}
+  <header>
+    <a class="brand" href="{{ url_for('index') }}">🐾 PetID</a>
+    <nav>
+      <a href="{{ url_for('community') }}">{{ t('nav_community') }}</a>
+      {% if u %}
+        {% if u.role == 'vet' %}<a href="{{ url_for('vet_home') }}">Vet</a>
+        {% else %}<a href="{{ url_for('dashboard') }}">{{ t('nav_dashboard') }}</a>{% endif %}
+        {% if u.role == 'admin' %}<a href="{{ url_for('admin') }}">Admin</a>{% endif %}
+        <a href="{{ url_for('account') }}">{{ u.name.split(' ')[0] }}</a>
+        <form method="post" action="{{ url_for('logout') }}" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="linkbtn" type="submit">{{ t('nav_logout') }}</button>
+        </form>
+      {% else %}
+        <a href="{{ url_for('login') }}">{{ t('nav_login') }}</a>
+        <a href="{{ url_for('signup') }}">{{ t('nav_signup') }}</a>
+      {% endif %}
+      <a class="lang" href="{{ url_for('set_lang', code='hi' if current_lang() == 'en' else 'en') }}">{{ 'हिन्दी' if current_lang() == 'en' else 'English' }}</a>
+    </nav>
+  </header>
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  <script>
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js').catch(function () {}); }
+  </script>
+</body>
+</html>

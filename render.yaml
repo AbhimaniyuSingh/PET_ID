@@ -1,0 +1,27 @@
+# Render.com blueprint (best effort - check Render's current docs if a field is rejected).
+# A persistent disk needs a paid instance type; on the free plan the database and uploaded
+# photos are wiped on every redeploy/restart, which is fine for a demo but not for real use.
+services:
+  - type: web
+    name: petid
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 1 --threads 4 --bind 0.0.0.0:$PORT
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: TRUST_PROXY
+        value: "1"
+      - key: BASE_URL
+        value: https://YOUR-SERVICE-NAME.onrender.com
+      - key: CRON_TOKEN
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: you@example.com
+      - key: ENABLE_SCHEDULER
+        value: "1"
+    # Uncomment on a paid plan, and add PETID_DATA_DIR=/var/data as an env var:
+    # disk:
+    #   name: petid-data
+    #   mountPath: /var/data
+    #   sizeGB: 1

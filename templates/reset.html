@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Choose a new password - PetID{% endblock %}
+{% block content %}
+<h1>Choose a new password</h1>
+<form method="post" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>New password <span class="muted">(at least 8 characters)</span></label>
+  <input name="password" type="password" minlength="8" required autocomplete="new-password">
+  <button class="btn" type="submit">Change password</button>
+</form>
+{% endblock %}

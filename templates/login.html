@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Log in - PetID{% endblock %}
+{% block content %}
+<h1>Log in</h1>
+<form method="post" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="next" value="{{ next }}">
+  <label>Email</label><input name="email" type="email" required autocomplete="username">
+  <label>Password</label><input name="password" type="password" required autocomplete="current-password">
+  <button class="btn" type="submit">Log in</button>
+  <p class="muted"><a href="{{ url_for('forgot') }}">Forgot password?</a> · <a href="{{ url_for('signup') }}">Create an account</a></p>
+</form>
+{% endblock %}
