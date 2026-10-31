@@ -50,8 +50,18 @@
       {% if r.location %}<div>📍 {{ r.location }}</div>{% endif %}
       {% if r.lat is not none %}<div><a href="https://www.google.com/maps?q={{ r.lat }},{{ r.lng }}" target="_blank" rel="noopener">📌 Exact location on Google Maps</a></div>{% endif %}
       {% if r.message %}<div>{{ r.message }}</div>{% endif %}
+      <form method="post" action="{{ url_for('report_delete', pet_id=pet.id, report_id=r.id) }}" class="inline" onsubmit="return confirm('Delete this message?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="linkbtn" type="submit" style="color:#B91C1C;font-weight:600">Delete message</button>
+      </form>
     </div>
   {% else %}<p class="muted">No messages yet.</p>{% endfor %}
+  {% if reports %}
+  <form method="post" action="{{ url_for('reports_clear', pet_id=pet.id) }}" onsubmit="return confirm('Delete ALL finder messages?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn danger" type="submit">Delete all messages</button>
+  </form>
+  {% endif %}
 </div>
 
 <div class="card">
@@ -59,6 +69,12 @@
   {% for s in scans %}
     <div class="report">{{ s.scanned_at.replace('T', ' ') }}{% if not s.alerted %} <span class="muted">(alert skipped - another scan just happened)</span>{% endif %}</div>
   {% else %}<p class="muted">Nobody has scanned the tag yet.</p>{% endfor %}
+  {% if scan_count %}
+  <form method="post" action="{{ url_for('scans_clear', pet_id=pet.id) }}" onsubmit="return confirm('Clear the whole scan history?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn danger" type="submit">Clear scan history</button>
+  </form>
+  {% endif %}
 </div>
 
 <div class="card">

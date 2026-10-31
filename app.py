@@ -591,6 +591,39 @@ def rotate_qr(pet_id):
     return redirect(url_for("manage", pet_id=pet_id))
 
 
+@app.route("/pets/<int:pet_id>/reports/<int:report_id>/delete", methods=["POST"])
+@login_required
+def report_delete(pet_id, report_id):
+    get_my_pet(pet_id)
+    db = get_db()
+    db.execute("DELETE FROM reports WHERE id = ? AND pet_id = ?", (report_id, pet_id))
+    db.commit()
+    flash("Message deleted.", "ok")
+    return redirect(url_for("manage", pet_id=pet_id))
+
+
+@app.route("/pets/<int:pet_id>/reports/clear", methods=["POST"])
+@login_required
+def reports_clear(pet_id):
+    get_my_pet(pet_id)
+    db = get_db()
+    db.execute("DELETE FROM reports WHERE pet_id = ?", (pet_id,))
+    db.commit()
+    flash("All finder messages deleted.", "ok")
+    return redirect(url_for("manage", pet_id=pet_id))
+
+
+@app.route("/pets/<int:pet_id>/scans/clear", methods=["POST"])
+@login_required
+def scans_clear(pet_id):
+    get_my_pet(pet_id)
+    db = get_db()
+    db.execute("DELETE FROM scans WHERE pet_id = ?", (pet_id,))
+    db.commit()
+    flash("Scan history cleared.", "ok")
+    return redirect(url_for("manage", pet_id=pet_id))
+
+
 # ---------- PDFs ----------
 def pet_url(pet):
     return base_url() + url_for("pet_page", public_id=pet["public_id"])
